@@ -42,21 +42,18 @@ io.on('connection', function (socket) {
       if (!text)
         return;
 
-      socket.get('name', function (err, name) {
-        var data = {
-          name: name,
-          text: text
-        };
-
-        broadcast('message', data);
-        messages.push(data);
-      });
+      var data = {
+        name: socket.name,
+        text: text
+      };
+      
+      broadcast('message', data);
+      messages.push(data);
     });
 
     socket.on('identify', function (name) {
-      socket.set('name', String(name || 'Anonymous'), function (err) {
-        updateRoster();
-      });
+      socket.name = String(name || 'Anonymous');
+      updateRoster();
     });
   });
 
@@ -64,7 +61,7 @@ function updateRoster() {
   async.map(
     sockets,
     function (socket, callback) {
-      socket.get('name', callback);
+      callback(null, socket.name);
     },
     function (err, names) {
       broadcast('roster', names);
